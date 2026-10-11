@@ -66,10 +66,7 @@ export function Order({ setSiparis }) {
     event.preventDefault();
     setHata("");
 
-    if (isim.trim().length < 3) {
-      setHata("İsim en az 3 karakter olmalıdır.");
-      return;
-    }
+
 
     if (boyut === "" || hamur === "") {
       setHata("Boyut ve hamur seçmelisin.");
@@ -103,7 +100,7 @@ export function Order({ setSiparis }) {
         siparis,
         {
           headers: {
-            "x-api-key": "reqres-free-v1",
+            "x-api-key": "free_user_3KUxntufRhJ0T1hq152mfdeJ1ca",
           },
         }
       );
@@ -178,7 +175,7 @@ export function Order({ setSiparis }) {
                 onChange={(event) => setIsim(event.target.value)}
                 placeholder="Adını ve soyadını yaz"
                 minLength={3}
-                required
+              disabled
               />
             </div>
 

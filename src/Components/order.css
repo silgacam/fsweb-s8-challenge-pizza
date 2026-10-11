@@ -443,3 +443,7 @@
     gap: 15px;
   }
 }
+
+.form-alani:has(#isim) {
+  display: none;
+}
