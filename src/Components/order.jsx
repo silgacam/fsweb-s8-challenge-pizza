@@ -23,6 +23,7 @@ const malzemeler = [
 export function Order({ setSiparis }) {
   const history = useHistory();
 
+  const [isim, setIsim] = useState("");
   const [boyut, setBoyut] = useState("");
   const [hamur, setHamur] = useState("");
 
@@ -46,7 +47,8 @@ export function Order({ setSiparis }) {
   };
 
   const secimlerToplam =
-    (boyutFiyati[boyut] || 0) + seciliMalzemeler.length * 5;
+    (boyutFiyati[boyut] || 0) +
+    seciliMalzemeler.length * 5;
 
   const toplamFiyat = (85.5 + secimlerToplam) * adet;
 
@@ -59,56 +61,66 @@ export function Order({ setSiparis }) {
       setSeciliMalzemeler([...seciliMalzemeler, malzeme]);
     }
   }
-  
-function siparisVer(event) {
-  event.preventDefault();
-  setHata("");
 
-  if (boyut === "" || hamur === "") {
-    setHata("Boyut ve hamur seçmelisin.");
-    return;
-  }
+  async function siparisVer(event) {
+    event.preventDefault();
+    setHata("");
 
-  if (
-    seciliMalzemeler.length < 4 ||
-    seciliMalzemeler.length > 10
-  ) {
-    setHata("4 ile 10 arasında malzeme seçmelisin.");
-    return;
-  }
+    if (isim.trim().length < 3) {
+      setHata("İsim en az 3 karakter olmalıdır.");
+      return;
+    }
 
-const siparis = {
-  boyut: boyut,
-  hamur: hamur,
-  malzemeler: seciliMalzemeler,
-  not: siparisNotu,
-  adet: adet,
-  secimlerToplam: secimlerToplam,
-  toplam: toplamFiyat,
-};
+    if (boyut === "" || hamur === "") {
+      setHata("Boyut ve hamur seçmelisin.");
+      return;
+    }
 
-  setYukleniyor(true);
+    if (
+      seciliMalzemeler.length < 4 ||
+      seciliMalzemeler.length > 10
+    ) {
+      setHata("4 ile 10 arasında malzeme seçmelisin.");
+      return;
+    }
 
-  axios
-    .post("https://reqres.in/api/pizza", siparis, {
-      headers: {
-        "x-api-key": "free_user_3KUxntufRhJ0T1hq152mfdeJ1ca",
-      },
-    })
-    .then(function (cevap) {
-      console.log("Sipariş gönderildi:", cevap.data);
+    const siparis = {
+      isim: isim.trim(),
+      boyut,
+      hamur,
+      malzemeler: [...seciliMalzemeler],
+      not: siparisNotu,
+      adet,
+      secimlerToplam,
+      toplam: toplamFiyat,
+    };
 
-      setSiparis(siparis);
+    setYukleniyor(true);
+
+    try {
+      const cevap = await axios.post(
+        "https://reqres.in/api/pizza",
+        siparis,
+        {
+          headers: {
+            "x-api-key": "reqres-free-v1",
+          },
+        }
+      );
+
+      setSiparis({
+        ...siparis,
+        apiYaniti: cevap.data,
+      });
+
       history.push("/siparis");
-    })
-    .catch(function (hata) {
-      console.error("Hata mesajı:", hata.message);
-      setHata("Sipariş gönderilemedi.");
-    })
-    .finally(function () {
+    } catch (error) {
+      console.error("Sipariş gönderilemedi:", error);
+      setHata("Sipariş gönderilemedi. Lütfen tekrar dene.");
+    } finally {
       setYukleniyor(false);
-    });
-}
+    }
+  }
 
   return (
     <>
@@ -135,7 +147,6 @@ const siparis = {
 
             <div className="fiyat-satiri">
               <h3>85.50₺</h3>
-
               <div className="puan-bilgisi">
                 <span>4.9</span>
                 <span>(200)</span>
@@ -143,15 +154,34 @@ const siparis = {
             </div>
 
             <p className="aciklama">
-              Frontend Dev olarak hâlâ position:absolute kullanıyorsan
-              bu çok acı pizza tam sana göre. Pizza, domates, peynir
-              ve çeşitli malzemelerle hazırlanan lezzetli bir yemektir.
+              Frontend Dev olarak hâlâ position:absolute kullanıyorsan bu çok acı pizza tam sana<br/>
+              göre. Pizza, domates, peynir ve genellikle çeşitli malzemelerle kaplanmış, daha<br/>
+              sonra geleneksel odun ateşinde bir fırında yüksek bir sıcaklıkta pişirilen,<br/>
+              genellikle yuvarlak, düzleştirilmiş bir mayalı buğday bazlı hamurdan<br/>
+              oluşan İtalyan kökenli lezzetli bir yemektir. Küçük bir pizaya bazen pizetta denir.
             </p>
           </div>
         </div>
 
         <main className="form-icerik">
           <form className="siparis-formu" onSubmit={siparisVer}>
+            <div className="form-alani">
+              <label htmlFor="isim" className="alan-baslik">
+                Ad Soyad <span className="zorunlu">*</span>
+              </label>
+
+              <input
+                id="isim"
+                name="isim"
+                type="text"
+                value={isim}
+                onChange={(event) => setIsim(event.target.value)}
+                placeholder="Adını ve soyadını yaz"
+                minLength={3}
+                required
+              />
+            </div>
+
             <div className="form-satiri">
               <div className="form-alani">
                 <label className="alan-baslik">
@@ -171,12 +201,9 @@ const siparis = {
                         name="boyut"
                         value={secenek}
                         checked={boyut === secenek}
-                        onChange={(event) =>
-                          setBoyut(event.target.value)
-                        }
+                        onChange={(event) => setBoyut(event.target.value)}
                         required
                       />
-
                       <span>{secenek}</span>
                     </label>
                   ))}
@@ -215,6 +242,10 @@ const siparis = {
                     <input
                       type="checkbox"
                       checked={seciliMalzemeler.includes(malzeme)}
+                      disabled={
+                        seciliMalzemeler.length >= 10 &&
+                        !seciliMalzemeler.includes(malzeme)
+                      }
                       onChange={() => malzemeSec(malzeme)}
                     />
 
