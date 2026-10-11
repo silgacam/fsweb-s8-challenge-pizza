@@ -20,7 +20,7 @@ const malzemeler = [
   "Kabak",
 ];
 
-export function Order() {
+export function Order({ setSiparis }) {
   const history = useHistory();
 
   const [boyut, setBoyut] = useState("");
@@ -59,57 +59,56 @@ export function Order() {
       setSeciliMalzemeler([...seciliMalzemeler, malzeme]);
     }
   }
+  
+function siparisVer(event) {
+  event.preventDefault();
+  setHata("");
 
-  function siparisVer(event) {
-    event.preventDefault();
-    setHata("");
-
-    if (boyut === "" || hamur === "") {
-      setHata("Boyut ve hamur seçmelisin.");
-      return;
-    }
-
-    if (
-      seciliMalzemeler.length < 4 ||
-      seciliMalzemeler.length > 10
-    ) {
-      setHata("4 ile 10 arasında malzeme seçmelisin.");
-      return;
-    }
-
-    const siparis = {
-      boyut: boyut,
-      hamur: hamur,
-      malzemeler: seciliMalzemeler,
-      not: siparisNotu,
-      adet: adet,
-      toplam: toplamFiyat,
-    };
-
-    setYukleniyor(true);
-
-      axios
-      .post("https://reqres.in/api/pizza", siparis, {
-        headers: {
-          "x-api-key": "free_user_3KUxntufRhJ0T1hq152mfdeJ1ca",
-        },
-      })
-      .then(function (cevap) {
-        console.log("Sipariş gönderildi:", cevap.data);
-        history.push("/siparis", {
-          siparis: siparis,
-        });
-      })
-      .catch(function (hata) {
-        console.error("Hata mesajı:", hata.message);
-        console.error("HTTP durum kodu:", hata.response?.status);
-        console.dir(hata.response?.data);
-        setHata("Sipariş gönderilemedi.");
-      })
-      .finally(function () {
-        setYukleniyor(false);
-      });
+  if (boyut === "" || hamur === "") {
+    setHata("Boyut ve hamur seçmelisin.");
+    return;
   }
+
+  if (
+    seciliMalzemeler.length < 4 ||
+    seciliMalzemeler.length > 10
+  ) {
+    setHata("4 ile 10 arasında malzeme seçmelisin.");
+    return;
+  }
+
+const siparis = {
+  boyut: boyut,
+  hamur: hamur,
+  malzemeler: seciliMalzemeler,
+  not: siparisNotu,
+  adet: adet,
+  secimlerToplam: secimlerToplam,
+  toplam: toplamFiyat,
+};
+
+  setYukleniyor(true);
+
+  axios
+    .post("https://reqres.in/api/pizza", siparis, {
+      headers: {
+        "x-api-key": "free_user_3KUxntufRhJ0T1hq152mfdeJ1ca",
+      },
+    })
+    .then(function (cevap) {
+      console.log("Sipariş gönderildi:", cevap.data);
+
+      setSiparis(siparis);
+      history.push("/siparis");
+    })
+    .catch(function (hata) {
+      console.error("Hata mesajı:", hata.message);
+      setHata("Sipariş gönderilemedi.");
+    })
+    .finally(function () {
+      setYukleniyor(false);
+    });
+}
 
   return (
     <>
@@ -175,6 +174,7 @@ export function Order() {
                         onChange={(event) =>
                           setBoyut(event.target.value)
                         }
+                        required
                       />
 
                       <span>{secenek}</span>

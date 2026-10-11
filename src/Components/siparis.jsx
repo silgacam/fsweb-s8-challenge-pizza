@@ -1,38 +1,26 @@
-import { useLocation, Link } from "react-router-dom";
+import React from "react";
 import { Footer } from "./footer";
-import "./siparis.css";
+import "./Siparis.css";
 
-export function Siparis() {
-  const konum = useLocation();
-  const siparis = konum.state?.siparis;
-
+export const Siparis = ({ siparis }) => {
   if (!siparis) {
     return (
       <>
-        <div className="onay-sayfasi">
-          <h1>Teknolojik Yemekler</h1>
-          <h2>SİPARİŞ BİLGİSİ BULUNAMADI</h2>
-          <Link to="/">Ana sayfaya dön</Link>
-        </div>
+
+        <main className="onay-sayfasi">
+          <h2>Sipariş bilgisi bulunamadı.</h2>
+        </main>
         <Footer />
       </>
     );
   }
 
-  const boyutEkFiyati = {
-    S: 0,
-    M: 20,
-    L: 40,
-  };
-
-  const secimler =
-    (boyutEkFiyati[siparis.boyut] || 0) +
-    siparis.malzemeler.length * 5;
-
   return (
     <>
-      <div className="onay-sayfasi">
+    
+      <main className="onay-sayfasi">
         <h1>Teknolojik Yemekler</h1>
+
         <p className="slogan">lezzetin yolda</p>
 
         <h2>SİPARİŞ ALINDI</h2>
@@ -43,16 +31,16 @@ export function Siparis() {
           <h3>Position Absolute Acı Pizza</h3>
 
           <p>
-            Boyut: <strong>{siparis.boyut}</strong>
+            Boyut: <b>{siparis.boyut}</b>
           </p>
 
           <p>
-            Hamur: <strong>{siparis.hamur}</strong>
+            Hamur: <b>{siparis.hamur}</b>
           </p>
 
           <p>
             Ek Malzemeler:{" "}
-            <strong>{siparis.malzemeler.join(", ")}</strong>
+            <b>{siparis.malzemeler.join(", ")}</b>
           </p>
         </div>
 
@@ -61,17 +49,17 @@ export function Siparis() {
 
           <p>
             <span>Seçimler</span>
-            <strong>{secimler.toFixed(2)}₺</strong>
+            <span>{Number(siparis.secimlerToplam).toFixed(2)}₺</span>
           </p>
 
           <p>
             <span>Toplam</span>
-            <strong>{siparis.toplam.toFixed(2)}₺</strong>
+            <b>{Number(siparis.toplam).toFixed(2)}₺</b>
           </p>
         </div>
-      </div>
+      </main>
 
       <Footer />
     </>
   );
-}
+};

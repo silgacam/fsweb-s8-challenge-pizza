@@ -1,68 +1,57 @@
-
-    beforeEach(() => {
+describe("Pizza Sipariş Formu", () => {
+  beforeEach(() => {
     cy.visit("http://localhost:5173/order");
   });
 
-  it("Sipariş notu alanına metin yazabilmeli", () => {
-    cy.get("#siparisNotu")
-      .type("Lütfen sıcak gönderin")
-      .should("have.value", "Lütfen sıcak gönderin");
+  it("Sipariş sayfası açılmalı", () => {
+    cy.contains("Position Absolute Acı Pizza").should("be.visible");
+    cy.contains("SİPARİŞ VER").should("be.visible");
   });
 
+  it("4'ten az malzeme seçilince siparişi engellemeli", () => {
 
-  it("Birden fazla pizza malzemesi seçebilmeli", () => {
-    cy.contains(".checkbox-label", "Domates")
+    cy.contains("label.checkbox-label", "Pepperoni")
       .find('input[type="checkbox"]')
-      .check({ force: true });
+      .uncheck({ force: true });
 
-    cy.contains(".checkbox-label", "Soğan")
+    cy.contains("label.checkbox-label", "Sosis")
       .find('input[type="checkbox"]')
-      .check({ force: true });
-
-    cy.contains(".checkbox-label", "Biber")
-      .find('input[type="checkbox"]')
-      .check({ force: true });
-
-    cy.contains(".checkbox-label", "Domates")
-      .find('input[type="checkbox"]')
-      .should("be.checked");
-
-    cy.contains(".checkbox-label", "Soğan")
-      .find('input[type="checkbox"]')
-      .should("be.checked");
-
-    cy.contains(".checkbox-label", "Biber")
-      .find('input[type="checkbox"]')
-      .should("be.checked");
-  });
-
-
-  it("Geçerli siparişi gönderebilmeli", () => {
+      .uncheck({ force: true });
 
     cy.get('input[name="boyut"][value="M"]')
       .check({ force: true });
 
-
-    cy.get("#hamur").select("İnce");
-
-   
-
-    cy.intercept("POST", "https://reqres.in/api/pizza", {
-      statusCode: 201,
-      body: {
-        id: "test-123",
-        message: "Sipariş başarılı",
-      },
-    }).as("siparisGonder");
-
+    cy.get("#hamur").select("Normal");
 
     cy.contains("button", "SİPARİŞ VER").click();
 
+    cy.contains("4 ile 10 arasında malzeme seçmelisin.")
+      .should("be.visible");
 
-    cy.wait("@siparisGonder")
-      .its("response.statusCode")
-      .should("equal", 201);
-
-
-    cy.location("pathname").should("equal", "/siparis");
+    cy.location("pathname").should("eq", "/order");
   });
+
+  it("Geçerli sipariş gönderilince sipariş özeti açılmalı", () => {
+
+    cy.intercept("POST", "**/api/pizza", {
+      statusCode: 201,
+      body: { id: 1 },
+    }).as("siparisGonder");
+
+    cy.get('input[name="boyut"][value="M"]')
+      .check({ force: true });
+
+    cy.get("#hamur").select("Normal");
+
+    cy.contains("button", "SİPARİŞ VER").click();
+
+    cy.wait("@siparisGonder");
+
+    cy.location("pathname").should("eq", "/siparis");
+
+    cy.contains("SİPARİŞ ALINDI").should("be.visible");
+    cy.contains("Boyut:").should("be.visible");
+    cy.contains("Hamur:").should("be.visible");
+    cy.contains("Sipariş Toplamı").should("be.visible");
+  });
+});
